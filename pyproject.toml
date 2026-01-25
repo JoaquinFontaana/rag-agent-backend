@@ -1,7 +1,7 @@
 [project]
-name = "multiagent-rag-humanintheloop"
+name = "rag-agent"
 version = "0.1.0"
-description = "Add your description here"
+description = "RAG Agent with Human-in-the-Loop for Customer Support"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
