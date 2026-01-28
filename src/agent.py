@@ -12,12 +12,14 @@ from src.utils import (
     routing_after_classification,
     routing_after_retrieve,
     human_handoff,
-    routing_after_human_handoff
+    routing_after_human_handoff,
+    OutputState,
+    InputState
 )
 
 @lru_cache()
 def get_workflow():
-    workflow = StateGraph(AgentState)
+    workflow = StateGraph(AgentState,output_schema=OutputState,input_schema=InputState)
 
     # ========== NODOS ==========
     workflow.add_node(classification_query)
@@ -31,17 +33,32 @@ def get_workflow():
     
     workflow.add_conditional_edges(
         "classification_query",
-        routing_after_classification
+        routing_after_classification,
+        {
+            "retrieve": "retrieve",
+            "generate_response": "generate_response",
+            "handle_technical_error": "handle_technical_error",
+            "handle_classification_error": "handle_classification_error",
+            "human_handoff": "human_handoff"
+        }
     )
     
     workflow.add_conditional_edges(
         "retrieve",
-        routing_after_retrieve
+        routing_after_retrieve,
+        {
+            "generate_response": "generate_response",
+            "handle_technical_error": "handle_technical_error"
+        }
     )
     
     workflow.add_conditional_edges(
         "human_handoff",
-        routing_after_human_handoff
+        routing_after_human_handoff,
+        {
+            "human_handoff": "human_handoff",
+            "END": END
+        }
     )
     workflow.add_edge("generate_response", END)
     workflow.add_edge("handle_technical_error", END)
@@ -49,6 +66,4 @@ def get_workflow():
     
     checkpointer = MemorySaver()
 
-    return workflow.compile(checkpointer)
-
-app = get_workflow()
+    return workflow.compile(checkpointer=checkpointer)

@@ -1,5 +1,5 @@
 from langgraph.graph import MessagesState
-from src.utils import ClassificationOutput
+from src.utils.prompts import ClassificationOutput
 from langchain_core.documents import Document
 
 class AgentState(MessagesState):
@@ -8,4 +8,12 @@ class AgentState(MessagesState):
     retrieved_docs: list[Document]
     error:str
     response:str
-    human_active:bool
+    human_active: bool
+    human_response:str
+    human_action:str
+
+class InputState(MessagesState):
+    user_query:str
+
+class OutputState(MessagesState):
+    response:str

@@ -1,6 +1,8 @@
-from src.utils import get_llm, AgentState, ClassificationOutput,CLASSIFICATOR_PROMPT, ANSWER_PROMPT
+from src.utils.llm import get_llm
+from src.utils.state import AgentState
+from src.utils.prompts import ClassificationOutput, CLASSIFICATOR_PROMPT, ANSWER_PROMPT
 from typing import cast
-from src.rag import retrieve_documents
+from src.rag.retriever import retrieve_documents
 from logging import getLogger
 from langgraph.types import interrupt
 from langchain_core.messages import AIMessage, SystemMessage, HumanMessage
@@ -42,7 +44,7 @@ def retrieve(state:AgentState):
 def handle_classification_error(state: AgentState):
     """Handles inappropriate queries."""
 
-    classification = state["classification_query"]
+    classification = state.get("classification_query")
 
     error_messages = {
         "inappropriate": "I cannot help you with that type of query. Please keep the conversation appropriate.",
@@ -109,49 +111,34 @@ def generate_response(state: AgentState):
         logger.error(f"Generate response node: An exceptions has ocurred {str(ex)}")
         return {"error": str(ex)}
     
-def human_handoff(state:AgentState):
+def human_handoff(state: AgentState):
     classification = state["classification_query"]
-    logger.info(f"Handing off to human: {state['user_query']}")
-    if not state.get("human_active"):
-
-        human_response = interrupt({
-            "type":"initial_handoff",
-            "reason":classification.reason,
-            "instruction": "Respond to user query",
+    
+    if not state.get("human_active", False):
+        # Initial handoff - interrupt with context
+        interrupt({
+            "type": "initial_handoff",
+            "reason": classification.reason,
+            "instruction": "Review and respond to user query",
             "query": state["user_query"]
         })
-
+        # Execution pauses here until human resumes via Studio/LangSmith
+        return {"human_active": True}  # Set on resume
+    
+    # On resume: human input is in state via SDK update_state()
+    # Assume human sets state["human_response"] + state["human_action"] = "resolve"/"continue"
+    human_action = state.get("human_action", "resolve")
+    human_response = state.get("human_response", "")
+    
+    if human_action == "resolve":
         return {
             "response": human_response,
-            "messages": [
-                SystemMessage(content="Transferred to human agent"),
-                AIMessage(content=human_response)
-            ],
-            "human_active": True,
-            "conversation_status": "active"
-        }
-    # Loop activo - esperar acción del humano
-    human_action = interrupt({
-        "type": "human_conversation_control",
-        "instruction": "Respond to user or mark as resolved",
-        "options": ["respond", "resolve"]
-    })
-    
-    # Procesar acción
-    if human_action["action"] == "resolve":
-        return {
-            "response": human_action.get("message"),
             "human_active": False,
-            "messages": [
-                AIMessage(human_action.get("message")),
-                SystemMessage("Human intervention finalized")
-                ]
+            "messages": [AIMessage(content=human_response)]
         }
-    
-    else:  # respond
-        response_message = human_action.get("message", "")
+    else:  # continue conversation
         return {
-            "response": response_message,
+            "response": human_response,
             "human_active": True,
-            "messages": [AIMessage(content=response_message)]
+            "messages": [AIMessage(content=human_response)]
         }

@@ -1,5 +1,5 @@
 from functools import lru_cache
-from src.rag import get_vector_store
+from src.rag.store import get_vector_store
 from langchain_core.documents import Document
 @lru_cache()
 def get_retriever():
