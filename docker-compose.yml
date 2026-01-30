@@ -3,13 +3,17 @@ services:
     build: .
     ports:
       - "8000:8000"
+      - "2024:2024" # Puerto por defecto de langgraph dev
     env_file:
       - ".env"
     depends_on:
       - db
     volumes:
-      - ./data/vectorstore:/app/data/vectorstore
-
+      - .:/app
+      - /app/.venv #Evita que el venv de Windows se mezcle con el de Linux
+      - ./data/vectorstore:/app/data/vectorstore # Persistencia de Chroma
+      
+    command: uv run langgraph dev --host 0.0.0.0 --port 2024
   # --- BASE DE DATOS POSTGRES ---
   db:
     image: postgres:15-alpine

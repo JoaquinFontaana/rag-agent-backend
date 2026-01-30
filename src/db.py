@@ -17,6 +17,6 @@ def get_connection_pool() -> Connection[DictRow]:
         conninfo=settings.postgres_uri, 
         kwargs=connection_kwargs,
         min_size=1,
-        max_size=10 # Ajusta según tu servidor
+        max_size=10 
     )
     return cast(Connection[DictRow],connection)
