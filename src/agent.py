@@ -1,8 +1,11 @@
 from langgraph.types import RetryPolicy
 from langgraph.graph import START, END, StateGraph
 from langgraph.checkpoint.postgres import PostgresSaver
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.cache.memory import InMemoryCache
 from functools import lru_cache
-from .models.ChatRequest import ChatRequest
+import os
+from src.models.ChatRequest import ChatRequest
 from langchain_core.messages import HumanMessage
 from src.utils import (
     AgentState,
@@ -18,7 +21,7 @@ from src.utils import (
     OutputState,
     InputState
 )
-from .db import get_connection_pool
+from src.db import get_connection_pool
 @lru_cache()
 def get_workflow():
     workflow = StateGraph(AgentState,output_schema=OutputState,input_schema=InputState)
@@ -66,11 +69,19 @@ def get_workflow():
     workflow.add_edge("handle_technical_error", END)
     workflow.add_edge("handle_classification_error", END)
     
-    pool = get_connection_pool()
+    # Use MemorySaver for development, PostgresSaver for production
+    use_memory = os.getenv("ENVIRONMENT", "development") == "development"
+    
+    if use_memory:
+        checkpointer = MemorySaver()
+    else:
+        pool = get_connection_pool()
+        checkpointer = PostgresSaver(pool)
+        checkpointer.setup()
+        
+    cache = InMemoryCache()
 
-    checkpointer = PostgresSaver(pool)
-    checkpointer.setup()
-    return workflow.compile(checkpointer=checkpointer)
+    return workflow.compile(checkpointer=checkpointer, cache=cache)
 
 def invoke_workflow(request: ChatRequest):
     workflow = get_workflow()

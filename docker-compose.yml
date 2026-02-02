@@ -1,21 +1,21 @@
 services:
-  agent:
-    build: .
+  langgraph-api:
+    image: rag-agent:latest  # Usa la imagen creada con 'langgraph build'
     ports:
       - "8000:8000"
-      - "2024:2024" # Puerto por defecto de langgraph dev
     env_file:
       - ".env"
+    environment:
+      - DATABASE_URI=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGRES_DB}?sslmode=disable
     depends_on:
-      - db
+      langgraph-postgres:
+        condition: service_healthy
+      langgraph-redis:
+        condition: service_healthy
     volumes:
-      - .:/app
-      - /app/.venv #Evita que el venv de Windows se mezcle con el de Linux
-      - ./data/vectorstore:/app/data/vectorstore # Persistencia de Chroma
-      
-    command: uv run langgraph dev --host 0.0.0.0 --port 2024
+      - ./data/vectorstore:/app/data/vectorstore
   # --- BASE DE DATOS POSTGRES ---
-  db:
+  langgraph-postgres:
     image: postgres:15-alpine
     restart: always
     env_file:
@@ -24,6 +24,23 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      start_period: 10s
+      timeout: 1s
+      retries: 5
+      interval: 5s
+
+  # --- REDIS (Requerido por LangGraph Agent Server) ---
+  langgraph-redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: redis-cli ping
+      interval: 5s
+      timeout: 1s
+      retries: 5
 
 volumes:
   postgres_data:

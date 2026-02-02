@@ -29,6 +29,8 @@ class BaseConfig(BaseSettings):
     @computed_field
     def postgres_uri(self) -> str:
         return f"postgresql://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+
+    redis_uri:str
 class DevelopmentConfig(BaseConfig):
     """Configuración para desarrollo"""
     debug: bool = True

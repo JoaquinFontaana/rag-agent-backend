@@ -1,5 +1,6 @@
 from langchain_chroma import Chroma
 from functools import lru_cache
+from langsmith import traceable
 from config import settings
 from src.rag import get_embedding_function
 from langchain_core.documents import Document
@@ -11,6 +12,7 @@ import shutil
 import os
 logger = logging.getLogger(__name__)
 
+@traceable
 @lru_cache()
 def get_vector_store() -> Chroma:
     return Chroma(
@@ -18,7 +20,7 @@ def get_vector_store() -> Chroma:
         embedding_function=get_embedding_function(),
         persist_directory=settings.vector_store_path
         )
-
+@traceable
 def ingest_file(file:UploadFile):
     try:
         # Validate input
@@ -49,7 +51,9 @@ def ingest_file(file:UploadFile):
         
     except Exception as e:
         logger.error(f"Error adding documents to vector store: {str(e)}", exc_info=True)
-
+@traceable(
+        run_type="parser"
+)
 def parse_to_document(file:UploadFile) -> list[Document]:
     temp_file_path = f"temp_{file.filename}"
     

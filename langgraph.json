@@ -1,8 +1,9 @@
 {
     "dependencies": ["."],
     "graphs": {
-        "agent": "src.agent:get_workflow"
+        "agent": "src/agent.py:get_workflow"
     },
     "env": ".env",
-    "custom_endpoints": "src.custom_endpoints:router"
+    "custom_endpoints": "src.custom_endpoints:router",
+    "image_distro": "wolfi"
 }

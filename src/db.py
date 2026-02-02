@@ -4,6 +4,8 @@ from psycopg.connection import Connection
 from config.configuration import settings
 from functools import lru_cache
 from typing import cast
+from langchain_community.cache import RedisCache
+from redis import Redis
 @lru_cache()
 def get_connection_pool() -> Connection[DictRow]:
 
@@ -20,3 +22,9 @@ def get_connection_pool() -> Connection[DictRow]:
         max_size=10 
     )
     return cast(Connection[DictRow],connection)
+
+@lru_cache()
+def get_cache():
+    redis_client = Redis.from_url(settings.redis_uri)
+    cache = RedisCache(redis_=redis_client,ttl=3600)
+    return cache

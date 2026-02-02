@@ -3,10 +3,10 @@ from config.configuration import settings
 from functools import lru_cache
 
 @lru_cache()
-def get_llm(temperature:float=0.5):
+def get_llm(temperature:float=0.5) -> ChatGoogleGenerativeAI:
     return ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
         temperature=temperature,
-        google_api_key=settings.google_api_key
+        google_api_key=settings.google_api_key,
     )
 
