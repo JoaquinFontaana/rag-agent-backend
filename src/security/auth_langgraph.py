@@ -1,9 +1,11 @@
 from langgraph_sdk import Auth
 from src.security.jwt import verify_token
+
 auth = Auth()
 
+
 @auth.authenticate
-async def authenticate(headers:dict) -> Auth.types.MinimalUserDict:
+async def authenticate(headers: dict):
     token = headers.get("bearrer-token")
 
     if not token:
@@ -15,6 +17,7 @@ async def authenticate(headers:dict) -> Auth.types.MinimalUserDict:
     payload = verify_token(token)
 
     return {
-        "identity":payload.get("sub"),
-        "is_authenticated":True
+        "identity": payload.get("sub"),
+        "is_authenticated": True,
+        "role": payload.get("role")  # Include role for authorization
     }

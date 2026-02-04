@@ -8,6 +8,3 @@ router = APIRouter(prefix="/auth")
 def login(credentials: LoginRequest, service: AuthService = Depends(get_auth_service)):
     token = service.login(credentials)
     return {"access_token": token, "token_type": "bearer"}
-
-@router.post("/logout")
-def logout():
