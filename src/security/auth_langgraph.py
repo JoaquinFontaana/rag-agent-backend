@@ -3,7 +3,7 @@ from src.security.jwt import verify_token
 
 auth = Auth()
 
-
+#Cant use without enterpise license
 @auth.authenticate
 async def authenticate(headers: dict):
     token = headers.get("bearrer-token")
