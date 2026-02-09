@@ -5,12 +5,12 @@ from typing import cast
 from src.rag.retriever import retrieve_documents
 from logging import getLogger
 from langgraph.types import interrupt
-from langchain_core.messages import AIMessage
-from src.db import get_cache
+from langchain_core.messages import AIMessage, HumanMessage
 logger = getLogger(__name__)
 
 def classification_query(state:AgentState):
-    if not state.get("user_query"):
+    user_query = state.get("user_query")
+    if not user_query:
         logger.error("The user query was empty in the classificate node")
         return {"error": "Input query cannot be empty"}
     try:
@@ -19,14 +19,14 @@ def classification_query(state:AgentState):
         structured_llm = llm.with_structured_output(
             ClassificationOutput,
             method="function_calling"
-            ).with_config(cache=get_cache())
+            )
         
         chain = CLASSIFICATOR_PROMPT | structured_llm
 
-        result = cast(ClassificationOutput,chain.invoke({"query": state['user_query']}))
+        result = cast(ClassificationOutput,chain.invoke({"query": user_query}))
         logger.info(f"Classification query result: {str(result)}")
 
-        return {"classification_query": result}
+        return {"classification_query": result, "messages":[HumanMessage(user_query)]}
     except Exception as e:
             logger.error(f"LLM Classification Error: {e}")
             return {"error": f"Error classifying query: {str(e)}"}
@@ -81,7 +81,7 @@ def handle_technical_error(state: AgentState):
 def generate_response(state: AgentState):
     """Genera respuesta usando historial completo de conversación."""
     try:
-        llm = get_llm().with_config(cache=get_cache())
+        llm = get_llm()
         docs = state.get("retrieved_docs", [])
 
         # Preparar contexto

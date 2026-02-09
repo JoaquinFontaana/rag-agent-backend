@@ -1,6 +1,7 @@
 services:
   langgraph-api:
     image: rag-agent:latest  # Usa la imagen creada con 'langgraph build'
+    pull_policy: never
     ports:
       - "8000:8000"
     env_file:

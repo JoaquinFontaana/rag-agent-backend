@@ -7,7 +7,7 @@ from typing import cast
 from langchain_community.cache import RedisCache
 from redis import Redis
 from sqlmodel import create_engine, SQLModel
-from urllib.parse import urlparse 
+
 @lru_cache()
 def get_connection_pool() -> Connection[DictRow]:
 

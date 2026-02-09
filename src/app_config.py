@@ -1,5 +1,6 @@
 """Application configuration for LangSmith deployment"""
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from src.errors.handlers import setup_exception_handlers
 import logging
 
@@ -12,12 +13,16 @@ def configure_app(app: FastAPI) -> None:
     """
     logger.info("Configuring FastAPI application...")
     
+    # Setup CORS middleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:3000", "http://localhost:3001"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    
     # Setup exception handlers
     setup_exception_handlers(app)
-    
-    # Add any other configuration here
-    # - CORS middleware
-    # - Additional middleware
-    # - Startup/shutdown events
     
     logger.info("Application configured successfully")

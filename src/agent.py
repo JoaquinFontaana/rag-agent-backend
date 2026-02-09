@@ -5,8 +5,6 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.cache.memory import InMemoryCache
 from functools import lru_cache
 import os
-from src.models.chat_request import ChatRequest
-from langchain_core.messages import HumanMessage
 from src.utils import (
     AgentState,
     handle_classification_error,
@@ -82,16 +80,3 @@ def get_workflow():
     cache = InMemoryCache()
 
     return workflow.compile(checkpointer=checkpointer, cache=cache)
-
-def invoke_workflow(request: ChatRequest):
-    workflow = get_workflow()
-    
-    input_data: InputState = { 
-        "user_query": request.user_query,
-        "messages": [HumanMessage(content=request.user_query)]
-    }
-    
-    return workflow.invoke(
-        input_data,
-        config={"configurable": {"thread_id": request.thread_id}}
-    )
