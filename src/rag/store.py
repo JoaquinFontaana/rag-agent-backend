@@ -4,7 +4,7 @@ from langsmith import traceable
 from config import settings
 from src.rag import get_embedding_function
 from langchain_core.documents import Document
-from langchain_community.document_loaders import PyPDFLoader, TextLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, UnstructuredMarkdownLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import logging
 from fastapi import UploadFile,HTTPException
@@ -86,6 +86,8 @@ def parse_to_document(file:UploadFile) -> list[Document]:
 
         elif file.filename.endswith(".txt"):
             loader = TextLoader(temp_file_path)
+        elif file.filename.endswith(".md"):
+            loader = UnstructuredMarkdownLoader(temp_file_path)
         else:
             raise HTTPException(status_code=400, detail="Formato no soportado")
             
