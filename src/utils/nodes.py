@@ -9,10 +9,20 @@ from langchain_core.messages import AIMessage, HumanMessage
 logger = getLogger(__name__)
 
 def classification_query(state:AgentState):
-    user_query = state.get("user_query")
+    # Extract latest human message from MessagesState (automatically updated)
+    messages = state.get("messages", [])
+    user_query = None
+    
+    # Get the most recent human message
+    if messages and isinstance(messages[-1], HumanMessage):
+        user_query = messages[-1].content
+
     if not user_query:
-        logger.error("The user query was empty in the classificate node")
+        logger.error("No human message found in messages array")
         return {"error": "Input query cannot be empty"}
+    
+    logger.info(f"Classifying query: {user_query}")
+    
     try:
         llm = get_llm()
 
@@ -24,9 +34,10 @@ def classification_query(state:AgentState):
         chain = CLASSIFICATOR_PROMPT | structured_llm
 
         result = cast(ClassificationOutput,chain.invoke({"query": user_query}))
-        logger.info(f"Classification query result: {str(result)}")
+        logger.info(f"Classification result: {result.category}, needs_retrieval: {result.needs_retrieval}")
 
-        return {"classification_query": result, "messages":[HumanMessage(user_query)]}
+        # Store user_query in state for other nodes to use
+        return {"classification_query": result, "user_query": user_query}
     except Exception as e:
             logger.error(f"LLM Classification Error: {e}")
             return {"error": f"Error classifying query: {str(e)}"}
@@ -34,7 +45,15 @@ def classification_query(state:AgentState):
 
 def retrieve(state:AgentState):
     try:
-        docs = retrieve_documents(state["user_query"])
+        # Use user_query set by classification_query node
+        user_query = state.get("user_query")
+        if not user_query:
+            logger.error("user_query not found - classification_query should set it")
+            return {"error": "No query available for retrieval"}
+        
+        logger.info(f"Retrieving documents for: {user_query}")
+        docs = retrieve_documents(user_query)
+        logger.info(f"Retrieved {len(docs)} documents")
         return {"retrieved_docs":docs}
     except Exception as ex:
         msg = f"An error occurred in the retriever node. {str(ex)}"

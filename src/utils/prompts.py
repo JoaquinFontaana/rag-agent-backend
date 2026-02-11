@@ -19,7 +19,8 @@ CLASSIFICATOR_PROMPT = ChatPromptTemplate([
 
     You must classify each query into ONE of these categories and explain why you classificate in that category:
 
-    1. **appropriate**: Valid customer service questions about products, services, policies, or general inquiries.
+    1. **appropriate**: Valid customer service questions about products, services, policies, or general inquiries also can be 
+    messages of greeting, trivial chatting.
     - Examples: "How do I return a product?", "What are your business hours?"
 
     2. **inappropriate**: Spam, offensive content, or unrelated topics.
@@ -51,9 +52,14 @@ ANSWER_PROMPT = ChatPromptTemplate.from_messages([
     3. **Structure:** If the answer requires steps, use bullet points or numbered lists to make it easy to read.
     4. **Accuracy (Crucial):** Answer strictly based on the context provided. Do NOT invent information.
     5. **Fallback:** If the context does not contain the answer, apologize politely and state that you don't have that specific information available, suggesting they contact human support for further assistance.
+    6. **Customer Service:** Always maintain a friendly and helpful tone, even when providing negative or complex information.
+    7. **Customer service orientation conversation: Answer in a customer service way, go to the point**
+    8. **Lenguaje: use the lenguaje of the user, per example spanish, english, etc**
 
-    **Context:**
+    Context:
+    **
     {context}
+    **
     """),
     MessagesPlaceholder(variable_name="history"), 
 ])

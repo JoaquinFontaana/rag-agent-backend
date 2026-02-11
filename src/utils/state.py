@@ -13,7 +13,7 @@ class AgentState(MessagesState):
     human_action:str
 
 class InputState(MessagesState):
-    user_query:str
+    pass
 
 class OutputState(MessagesState):
     response:str
