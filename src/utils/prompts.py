@@ -65,8 +65,8 @@ ANSWER_PROMPT = ChatPromptTemplate.from_messages([
 ])
 
 RETRIEVER_ENHANCEMENT_PROMPT = ChatPromptTemplate.from_messages([
-    ("system", """You are a retriver enhancement, your goal is translate to english the user query if is necesarry and generate a best
-     text to retrieve information in the vector data base. 
+    ("system", """You are a retriver enhancement, your goal is translate to english the user query if is necesarry and generate a best, concise 
+    text which represent the semantic of the query to retrieve usefull information in the vector data base. 
     """),
-    MessagesPlaceholder(variable_name="user_query"), 
+    ("user_query","{user_query}"), 
 ])
