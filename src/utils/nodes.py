@@ -1,6 +1,6 @@
 from src.utils.llm import get_llm
 from src.utils.state import AgentState
-from src.utils.prompts import ClassificationOutput, CLASSIFICATOR_PROMPT, ANSWER_PROMPT
+from src.utils.prompts import ClassificationOutput, CLASSIFICATOR_PROMPT, ANSWER_PROMPT, RETRIEVER_ENHANCEMENT_PROMPT
 from typing import cast
 from src.rag.retriever import retrieve_documents
 from logging import getLogger
@@ -51,8 +51,13 @@ def retrieve(state:AgentState):
             logger.error("user_query not found - classification_query should set it")
             return {"error": "No query available for retrieval"}
         
-        logger.info(f"Retrieving documents for: {user_query}")
-        docs = retrieve_documents(user_query)
+        chain =  RETRIEVER_ENHANCEMENT_PROMPT | get_llm()
+        
+        retrieve_query = chain.invoke(input={"user_query":user_query}).content
+
+        logger.info(f"Retrieving documents for: {retrieve_query}")
+        docs = retrieve_documents(cast(str,retrieve_query))
+        
         logger.info(f"Retrieved {len(docs)} documents")
         return {"retrieved_docs":docs}
     except Exception as ex:

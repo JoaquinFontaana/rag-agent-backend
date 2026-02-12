@@ -63,3 +63,10 @@ ANSWER_PROMPT = ChatPromptTemplate.from_messages([
     """),
     MessagesPlaceholder(variable_name="history"), 
 ])
+
+RETRIEVER_ENHANCEMENT_PROMPT = ChatPromptTemplate.from_messages([
+    ("system", """You are a retriver enhancement, your goal is translate to english the user query if is necesarry and generate a best
+     text to retrieve information in the vector data base. 
+    """),
+    MessagesPlaceholder(variable_name="user_query"), 
+])
