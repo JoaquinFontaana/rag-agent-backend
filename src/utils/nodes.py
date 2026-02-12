@@ -53,7 +53,7 @@ def retrieve(state:AgentState):
         
         chain =  RETRIEVER_ENHANCEMENT_PROMPT | get_llm()
         
-        retrieve_query = chain.invoke(input={"user_query":user_query}).content
+        retrieve_query = chain.invoke({"query": user_query}).content
 
         logger.info(f"Retrieving documents for: {retrieve_query}")
         docs = retrieve_documents(cast(str,retrieve_query))
