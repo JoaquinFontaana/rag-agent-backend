@@ -15,7 +15,7 @@ from src.utils import (
     routing_after_classification,
     routing_after_retrieve,
     human_handoff,
-    routing_after_human_handoff,
+    check_human_active,
     OutputState,
     InputState,
     waiting_human_response
@@ -34,7 +34,15 @@ def get_workflow():
     workflow.add_node(waiting_human_response)
     workflow.add_node(human_handoff)
     # ========== EDGES ==========
-    workflow.add_edge(START, "classification_query")
+    # Check human_active at START for multi-turn HITL conversations
+    workflow.add_conditional_edges(
+        START,
+        check_human_active,
+        {
+            "human_handoff": "human_handoff",
+            "classification_query": "classification_query"
+        }
+    )
     
     workflow.add_conditional_edges(
         "classification_query",
@@ -58,14 +66,7 @@ def get_workflow():
     )
     workflow.add_edge("waiting_human_response","human_handoff")
 
-    workflow.add_conditional_edges(
-        "human_handoff",
-        routing_after_human_handoff,
-        {
-            "human_handoff": "human_handoff",
-            "END": END
-        }
-    )
+    workflow.add_edge("human_handoff",END)
     workflow.add_edge("generate_response", END)
     workflow.add_edge("handle_technical_error", END)
     workflow.add_edge("handle_classification_error", END)

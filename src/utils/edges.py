@@ -1,6 +1,16 @@
 from src.utils.state import AgentState
 from langgraph.graph import END
 
+def check_human_active(state: AgentState):
+    """
+    Check at START if human is active.
+    If yes, route directly to human_handoff for multi-turn conversation.
+    If no, proceed with normal classification flow.
+    """
+    if state.get("human_active", False):
+        return "human_handoff"
+    return "classification_query"
+
 def routing_after_classification(state:AgentState):
     if state.get("error"):
         return "handle_technical_error"

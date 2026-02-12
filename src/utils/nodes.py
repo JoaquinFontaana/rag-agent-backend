@@ -140,18 +140,22 @@ def waiting_human_response(state: AgentState):
     return {"messages":[AIMessage(waiting_message)]}
 
 def human_handoff(state: AgentState):
-    classification = state["classification_query"]
+    """
+    Human handoff node - interrupts execution for admin response.
+    Multi-turn conversations work because check_human_active() at START
+    routes back here when human_active=True.
+    """
+    # Get the latest user message from state
+    messages = state.get("messages", [])
+    user_message = messages[-1].content if messages and isinstance(messages[-1], HumanMessage) else state.get("user_query", "")
     
-    if not state.get("human_active", False):
-        # Initial handoff - interrupt with context
-        interrupt({
-            "type": "initial_handoff",
-            "reason": classification.reason,
-            "instruction": "Review and respond to user query",
-            "query": state["user_query"]
-        })
-        # Execution pauses here until human resumes via Studio/LangSmith
-        return {"human_active": True}  # Set on resume
+    #Interrupt to get admin response
+    interrupt({
+        "type": "human_handoff",
+        "reason": state.get('classification_query').reason,
+        "instruction": "Review and respond to user query",
+        "user_message": user_message
+    })
     
     # On resume: human input is in state via SDK update_state()
     # Assume human sets state["human_response"] + state["human_action"] = "resolve"/"continue"
@@ -160,13 +164,11 @@ def human_handoff(state: AgentState):
     
     if human_action == "resolve":
         return {
-            "response": human_response,
             "human_active": False,
             "messages": [AIMessage(content=human_response)]
         }
     else:  # continue conversation
         return {
-            "response": human_response,
             "human_active": True,
             "messages": [AIMessage(content=human_response)]
         }

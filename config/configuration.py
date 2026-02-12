@@ -8,7 +8,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 class BaseConfig(BaseSettings):
     """Configuración base compartida por todos los entornos"""
-    vector_store_path: str = str(BASE_DIR/"data"/"vectorstore")
+    # Vector store path - points to Docker volume mount location
+    vector_store_path: str = "/app/data/vectorstore"
     # API Keys
     google_api_key: str
     
