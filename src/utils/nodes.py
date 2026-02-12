@@ -150,17 +150,17 @@ def human_handoff(state: AgentState):
     user_message = messages[-1].content if messages and isinstance(messages[-1], HumanMessage) else state.get("user_query", "")
     
     #Interrupt to get admin response
-    interrupt({
+    res = interrupt({
         "type": "human_handoff",
         "reason": state.get('classification_query').reason,
         "instruction": "Review and respond to user query",
         "user_message": user_message
     })
-    
+    logger.info(f"Interrupt response data {res}")
     # On resume: human input is in state via SDK update_state()
     # Assume human sets state["human_response"] + state["human_action"] = "resolve"/"continue"
-    human_action = state.get("human_action", "resolve")
-    human_response = state.get("human_response", "")
+    human_action = res.get("human_action", "resolve")
+    human_response = res.get("human_response", "")
     
     if human_action == "resolve":
         return {

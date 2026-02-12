@@ -7,13 +7,10 @@ class AgentState(MessagesState):
     classification_query: ClassificationOutput
     retrieved_docs: list[Document]
     error:str
-    response:str
     human_active: bool
-    human_response:str
-    human_action:str
 
 class InputState(MessagesState):
     pass
 
 class OutputState(MessagesState):
-    response:str
+    pass
