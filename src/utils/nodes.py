@@ -129,7 +129,16 @@ def generate_response(state: AgentState):
     except Exception as ex:
         logger.error(f"Generate response node: An exceptions has ocurred {str(ex)}")
         return {"error": str(ex)}
-    
+
+def waiting_human_response(state: AgentState):
+    if state.get('classification_query').category != "needs_human":
+        error_message ="The response dont need human but the graph go to waiting human response node"
+        logger.error(error_message)
+        raise ValueError(error_message)
+    waiting_message = "A human its going to join on the chat the more soon possible"
+
+    return {"messages":[AIMessage(waiting_message)]}
+
 def human_handoff(state: AgentState):
     classification = state["classification_query"]
     

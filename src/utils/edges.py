@@ -15,7 +15,7 @@ def routing_after_classification(state:AgentState):
             return "generate_response"
     else:
         if category == "needs_human":
-            return "human_handoff"
+            return "waiting_human_response"
         else:
             return "handle_classification_error"
     

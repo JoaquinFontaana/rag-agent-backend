@@ -17,7 +17,8 @@ from src.utils import (
     human_handoff,
     routing_after_human_handoff,
     OutputState,
-    InputState
+    InputState,
+    waiting_human_response
 )
 from src.db import get_connection_pool
 @lru_cache()
@@ -30,6 +31,7 @@ def get_workflow():
     workflow.add_node(generate_response)
     workflow.add_node( handle_classification_error)
     workflow.add_node(handle_technical_error)
+    workflow.add_node(waiting_human_response)
     workflow.add_node(human_handoff)
     # ========== EDGES ==========
     workflow.add_edge(START, "classification_query")
@@ -42,7 +44,7 @@ def get_workflow():
             "generate_response": "generate_response",
             "handle_technical_error": "handle_technical_error",
             "handle_classification_error": "handle_classification_error",
-            "human_handoff": "human_handoff"
+            "waiting_human_response": "waiting_human_response"
         }
     )
     
@@ -54,7 +56,8 @@ def get_workflow():
             "handle_technical_error": "handle_technical_error"
         }
     )
-    
+    workflow.add_edge("waiting_human_response","human_handoff")
+
     workflow.add_conditional_edges(
         "human_handoff",
         routing_after_human_handoff,
