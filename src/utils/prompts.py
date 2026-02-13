@@ -64,6 +64,9 @@ ANSWER_PROMPT = ChatPromptTemplate.from_messages([
     MessagesPlaceholder(variable_name="history"), 
 ])
 
+class RetrieveEnhancementOutput(BaseModel):
+    retrieve_query:str = Field(description="Query for retrive generated")
+
 RETRIEVER_ENHANCEMENT_PROMPT = ChatPromptTemplate.from_messages([
     ("system", """You are a retriver enhancement, your goal is translate to english the user query if is necesarry and generate a best, concise 
     text which represent the semantic of the query to retrieve usefull information in the vector data base. 
